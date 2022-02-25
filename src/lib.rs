@@ -38,10 +38,8 @@ pub trait Individual {
 /// * `max_iterations`: The maximum number of populations the algorithm will go through
 /// * `target_fitness_loss`: Target loss value of an indeal individual
 /// * `loss`: The loss function that can be applied to an indiviual
-pub fn train<T: Individual, F>(num_individuals: usize, max_iterations: usize,
-                               target_fitness_loss: f32, loss: F) -> T
-    where F: Fn(&T) -> f32,
-          T: Iterator {
+pub fn train<T: Individual>(num_individuals: usize, max_iterations: usize,
+                               target_fitness_loss: f32, loss: impl Fn(&T) -> f32) -> T{
     let mut population: Vec<(T, f32)> = Vec::with_capacity(num_individuals);
 
     // Initialize population
