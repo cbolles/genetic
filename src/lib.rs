@@ -1,3 +1,5 @@
+use rand::Rng;
+use rand::thread_rng;
 
 
 /// An individual represents a single member of a population in the geneic
@@ -36,7 +38,8 @@ pub trait Individual {
 /// * `max_iterations`: The maximum number of populations the algorithm will go through
 /// * `target_fitness_loss`: Target loss value of an indeal individual
 /// * `loss`: The loss function that can be applied to an indiviual
-pub fn train<T: Individual, F>(num_individuals: usize, max_iterations: usize, target_fitness_loss: f32, loss: F) -> T
+pub fn train<T: Individual, F>(num_individuals: usize, max_iterations: usize,
+                               target_fitness_loss: f32, loss: F) -> T
     where F: Fn(&T) -> f32,
           T: Iterator {
     let mut population: Vec<(T, f32)> = Vec::with_capacity(num_individuals);
@@ -48,6 +51,8 @@ pub fn train<T: Individual, F>(num_individuals: usize, max_iterations: usize, ta
 
     // Represent the index limit for the top 20% of the population
     let max_index: usize = (0.2 * (num_individuals as f32)) as usize;
+
+    let mut rng = thread_rng();
 
     // Training loop
     for _i in 0..max_iterations {
@@ -63,8 +68,23 @@ pub fn train<T: Individual, F>(num_individuals: usize, max_iterations: usize, ta
         }
 
         // Handle reproduction, for now, only the top 20% can reproduce
+        let mut new_population: Vec<(T, f32)> = Vec::with_capacity(num_individuals);
 
+        for _j in 0..num_individuals {
+            let parent_a = &population[rng.gen_range(0..max_index)].0;
+            let parent_b = &population[rng.gen_range(0..max_index)].0;
+            let mut child = parent_a.reproduce(parent_b);
 
+            // 10% chance at mutation
+            if rng.gen_range(0..max_index) == 1 {
+                child.mutate();
+            }
+
+            new_population.push((child, 0.0));
+        }
+
+        // Update the population for the next iteration
+        population = new_population;
     }
 
     // Assume that the first element is the best
